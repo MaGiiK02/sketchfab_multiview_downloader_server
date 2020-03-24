@@ -13,8 +13,7 @@ const settings = require('./settings')
       cb(null, file.fieldname)
     }
   }) 
-  , uploader = multer({ storage: storage })
-  , statsCrawler = require('./statisticCrawler');
+  , uploader = multer({ storage: storage });
 
 server.use(cors())
 
@@ -61,31 +60,3 @@ server.post('/:uid', uploader.single('view'), (request, response, next) => {
 server.listen(settings.port, () => {
     console.log("Server listen on port", settings.port);
 });
-
-
-
-// stats 
-var p = new Promise(r=>r());
-
-function sequentialExec(list, promise) {
-  promise.then(()=>{  
-    const [current, ...rest] = list;
-    const p = new Promise((resolve) => {
-      statsCrawler.getClassStats(settings.sketchFabSettings, current, (stats) =>{
-        console.log(stats);
-        if(!stats) return;
-      
-        fs.writeFileSync( 
-          path.join(settings.dataPath, current + "_statistics.json"), 
-          JSON.stringify(stats)
-        );
-
-        resolve();
-      });
-    });
-    
-    sequentialExec(rest, p);
-  });
-}
-
-sequentialExec(settings.categories, new Promise(r=>r()));
